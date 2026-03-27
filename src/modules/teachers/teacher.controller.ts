@@ -5,6 +5,14 @@ import { Branch } from '../organization/branch.model';
 import { User } from '../users/user.model';
 import { createTeacherSchema, updateTeacherSchema } from './teacher.validation';
 import { buildListQuery, buildMeta } from '../../core/utils/query';
+import {
+  teacherService,
+  TeacherBranchMismatchError,
+  TeacherBranchNotFoundError,
+  TeacherSchoolNotFoundError,
+  TeacherUserNotFoundError,
+} from './teacher.service';
+import { CreateTeacherDTO } from './teacher.types';
 
 export const createTeacher = async (req: Request, res: Response): Promise<void> => {
   const { error, value } = createTeacherSchema.validate(req.body, { abortEarly: false });
@@ -24,35 +32,18 @@ export const createTeacher = async (req: Request, res: Response): Promise<void> 
   }
 
   try {
-    const school = await School.findByPk(value.school_id);
-    if (!school) {
-      res.status(400).json({ message: 'School not found' });
-      return;
-    }
-
-    if (value.branch_id) {
-      const branch = await Branch.findByPk(value.branch_id);
-      if (!branch) {
-        res.status(400).json({ message: 'Branch not found' });
-        return;
-      }
-      if (branch.school_id !== value.school_id) {
-        res.status(400).json({ message: 'Branch does not belong to the school' });
-        return;
-      }
-    }
-
-    if (value.user_id) {
-      const user = await User.findByPk(value.user_id);
-      if (!user) {
-        res.status(400).json({ message: 'User not found' });
-        return;
-      }
-    }
-
-    const teacher = await Teacher.create(value);
+    const teacher = await teacherService.createTeacherWithDocuments(value as CreateTeacherDTO);
     res.status(201).json({ message: 'Teacher created successfully', data: teacher });
   } catch (err) {
+    if (
+      err instanceof TeacherSchoolNotFoundError ||
+      err instanceof TeacherBranchNotFoundError ||
+      err instanceof TeacherBranchMismatchError ||
+      err instanceof TeacherUserNotFoundError
+    ) {
+      res.status(400).json({ message: err.message });
+      return;
+    }
     res.status(500).json({ message: 'Server error' });
   }
 };

@@ -24,6 +24,7 @@ import { transportRouter } from '../modules/transport/transport.routes';
 import { communicationRouter } from '../modules/communication/communication.routes';
 import { departmentRouter } from '../modules/organization/department.routes';
 import { teacherRouter } from '../modules/teachers/teacher.routes';
+import { documentRouter } from '../modules/document/document.routes';
 
 export const registerRoutes = (router: Router): void => {
   router.use('/auth', authRouter);
@@ -51,4 +52,5 @@ export const registerRoutes = (router: Router): void => {
   router.use('/', communicationRouter);
   router.use('/', departmentRouter);
   router.use('/', teacherRouter);
+  router.use('/', documentRouter);
 };

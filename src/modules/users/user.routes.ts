@@ -46,14 +46,19 @@ import { createUser, getUserMessages, getMe, listUsers } from './user.controller
 
 export const userRouter = Router();
 
-userRouter.get('/', authenticateJWT, authorizeRoles('super_admin', 'school_owner', 'school_admin', 'school_principal'), listUsers);
+userRouter.get(
+  '/',
+  authenticateJWT,
+  authorizeRoles('super_admin', 'school_owner', 'school_admin', 'school_principal', 'registrar'),
+  listUsers
+);
 
 userRouter.get('/me', authenticateJWT, getMe);
 
 userRouter.post(
   '/',
   authenticateJWT,
-  authorizeRoles('super_admin', 'school_owner', 'school_admin', 'school_principal'),
+  authorizeRoles('super_admin', 'school_owner', 'school_admin', 'school_principal', 'registrar'),
   createUser
 );
 

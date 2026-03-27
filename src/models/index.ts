@@ -20,6 +20,7 @@ import { Parent } from '../modules/students/parent.model';
 import { StudentParent } from '../modules/students/student-parent.model';
 import { Teacher } from '../modules/teachers/teacher.model';
 import { TeacherSubject } from '../modules/teachers/teacher-subject.model';
+import { Document } from '../modules/document/document.model';
 import { StudentAttendance } from '../modules/attendance/student-attendance.model';
 import { TeacherAttendance } from '../modules/attendance/teacher-attendance.model';
 import { Exam } from '../modules/exams/exam.model';
@@ -62,6 +63,7 @@ export const models = {
   StudentParent,
   Teacher,
   TeacherSubject,
+  Document,
   StudentAttendance,
   TeacherAttendance,
   Exam,
@@ -120,10 +122,13 @@ UserRole.belongsTo(Role, { foreignKey: 'role_id' });
   School.hasMany(Subject, { foreignKey: 'school_id' });
   Subject.belongsTo(School, { foreignKey: 'school_id' });
 
+  Student.hasMany(StudentParent, { foreignKey: 'student_id', onDelete: 'CASCADE' });
+  Parent.hasMany(StudentParent, { foreignKey: 'parent_id', onDelete: 'CASCADE' });
+  StudentParent.belongsTo(Student, { foreignKey: 'student_id' });
+  StudentParent.belongsTo(Parent, { foreignKey: 'parent_id' });
+
   Student.belongsToMany(Parent, { through: StudentParent, foreignKey: 'student_id' });
   Parent.belongsToMany(Student, { through: StudentParent, foreignKey: 'parent_id' });
-UserRole.belongsTo(User, { foreignKey: 'user_id' });
-UserRole.belongsTo(Role, { foreignKey: 'role_id' });
 
   School.hasMany(Student, { foreignKey: 'school_id' });
   Student.belongsTo(School, { foreignKey: 'school_id' });
@@ -136,6 +141,30 @@ UserRole.belongsTo(Role, { foreignKey: 'role_id' });
   Teacher.belongsTo(Branch, { foreignKey: 'branch_id' });
   User.hasOne(Teacher, { foreignKey: 'user_id' });
   Teacher.belongsTo(User, { foreignKey: 'user_id' });
+
+  Teacher.hasMany(Document, {
+    foreignKey: 'ownerId',
+    constraints: false,
+    scope: { ownerType: 'teacher' },
+    as: 'documents',
+  });
+  Document.belongsTo(Teacher, {
+    foreignKey: 'ownerId',
+    constraints: false,
+    as: 'teacher',
+  });
+
+  Student.hasMany(Document, {
+    foreignKey: 'ownerId',
+    constraints: false,
+    scope: { ownerType: 'student' },
+    as: 'documents',
+  });
+  Document.belongsTo(Student, {
+    foreignKey: 'ownerId',
+    constraints: false,
+    as: 'student',
+  });
 
   Teacher.belongsToMany(Subject, { through: TeacherSubject, foreignKey: 'teacher_id' });
   Subject.belongsToMany(Teacher, { through: TeacherSubject, foreignKey: 'subject_id' });

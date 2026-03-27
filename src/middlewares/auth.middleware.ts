@@ -26,7 +26,7 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
     req.user = {
       user_id: decoded.sub,
       role: decoded.roles?.[0] ?? '',
-      school_id: decoded.school_id ?? null,
+      school_id: decoded.school_id ?? decoded.schoolId ?? null,
     };
     next();
   } catch (error) {

@@ -49,4 +49,13 @@ import { listRoles } from './role.controller';
 
 export const roleRouter = Router();
 
-roleRouter.get('/', authenticateJWT, authorizeRoles('super_admin', 'school_owner', 'school_admin', 'school_principal'), listRoles);
+roleRouter.get('/', authenticateJWT, authorizeRoles('super_admin', 'school_owner', 'school_admin', 'school_principal','teacher',
+      'registrar',
+      'accountant',
+      'parent',
+      'student',
+      'cleaner',
+      'registrar','registral',
+      'security',
+      'librarian',
+      'finance',), listRoles);

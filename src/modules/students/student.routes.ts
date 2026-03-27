@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authenticateJWT } from '../../middlewares/auth.middleware';
 import { authorizeRoles } from '../../middlewares/rbac.middleware';
-import { createStudent } from './student.controller';
+import { createStudent, registerStudent } from './student.controller';
 
 /**
  * @openapi
@@ -115,4 +115,11 @@ studentRouter.post(
   authenticateJWT,
   authorizeRoles('super_admin', 'school_owner', 'school_admin', 'registrar'),
   createStudent
+);
+
+studentRouter.post(
+  '/register',
+  authenticateJWT,
+  authorizeRoles('super_admin', 'school_owner', 'school_admin', 'registrar'),
+  registerStudent
 );

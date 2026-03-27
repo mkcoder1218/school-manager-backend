@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import {
   ParentEmailExistsError,
+  ParentPhoneExistsError,
   ParentNotFoundError,
   SchoolNotFoundError,
   parentService,
@@ -38,7 +39,7 @@ export const createParent = async (req: Request, res: Response): Promise<void> =
       res.status(400).json({ message: error.message });
       return;
     }
-    if (error instanceof ParentEmailExistsError) {
+    if (error instanceof ParentEmailExistsError || error instanceof ParentPhoneExistsError) {
       res.status(409).json({ message: error.message });
       return;
     }
@@ -101,7 +102,7 @@ export const updateParent = async (req: Request, res: Response): Promise<void> =
       res.status(404).json({ message: error.message });
       return;
     }
-    if (error instanceof ParentEmailExistsError) {
+    if (error instanceof ParentEmailExistsError || error instanceof ParentPhoneExistsError) {
       res.status(409).json({ message: error.message });
       return;
     }

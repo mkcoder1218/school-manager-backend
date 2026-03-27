@@ -1,6 +1,7 @@
 import { DataTypes, QueryTypes, Sequelize } from 'sequelize';
 import { env } from './config/env';
 import { sequelize } from './core/database/sequelize';
+import { runMigrations } from './core/database/migration-runner';
 import { initModels, models } from './models';
 import { seedRoles } from './database/seeders/role.seed';
 import { seedSuperAdmin } from './database/seeders/super-admin.seed';
@@ -194,13 +195,26 @@ const seedAcademicData = async (): Promise<void> => {
       id: generateUuid(),
       school_id: schoolId,
       branch_id: branch.id,
+      student_id: `STU-${Date.now()}`,
       first_name: 'Test',
       last_name: 'Student',
       gender: 'male',
-      date_of_birth: new Date('2012-01-01'),
+      date_of_birth: '2012-01-01',
       admission_number: `ADM-${Date.now()}`,
       address: 'Addis Ababa',
       phone: '0912345678',
+      email: null,
+      middle_name: null,
+      grade: '1',
+      section: 'A',
+      academic_year: '2025/2026',
+      enrollment_date: '2026-03-21',
+      status: 'active',
+      nationality: null,
+      place_of_birth: null,
+      blood_group: null,
+      medical_conditions: null,
+      allergies: null,
     });
   }
 };
@@ -214,7 +228,8 @@ export const connectDatabase = async (): Promise<void> => {
   }
 
   initModels();
-  await sequelize.sync({ alter: true });
+  await runMigrations(sequelize);
+  await sequelize.sync();
   await ensureRoleSchoolIdNullable();
   await ensureUserSchoolIdNullable();
 
