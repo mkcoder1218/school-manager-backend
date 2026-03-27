@@ -7,6 +7,7 @@ import { generateUuid } from '../../core/utils/uuid';
 import { CreateUserDTO, UserDirectoryItem, UserResponse } from './user.types';
 import { FindOptions, Op, WhereOptions } from 'sequelize';
 import { Message } from '../communication/message.model';
+import { ROLE_HIERARCHY } from '../rbac/role-hierarchy';
 
 export class EmailExistsError extends Error {
   constructor() {
@@ -134,10 +135,9 @@ export const userService = {
       };
     });
 
-    if (options.actorRole === 'school_admin') {
-      rows = rows.filter(
-        (user) => !user.roles.includes('school_owner') && !user.roles.includes('super_admin')
-      );
+    const allowedRoles = options.actorRole ? ROLE_HIERARCHY[options.actorRole] : undefined;
+    if (allowedRoles) {
+      rows = rows.filter((user) => user.roles.every((role) => allowedRoles.includes(role)));
     }
 
     return { rows, count: rows.length };

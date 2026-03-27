@@ -23,11 +23,22 @@ export class ParentEmailExistsError extends Error {
   }
 }
 
+export class ParentPhoneExistsError extends Error {
+  constructor() {
+    super('Parent phone already exists for this school');
+  }
+}
+
 export const parentService = {
   async createParent(input: CreateParentDTO): Promise<ParentResponse> {
     const school = await School.findByPk(input.school_id);
     if (!school) {
       throw new SchoolNotFoundError();
+    }
+
+    const existingPhone = await Parent.findOne({ where: { school_id: input.school_id, phone: input.phone } });
+    if (existingPhone) {
+      throw new ParentPhoneExistsError();
     }
 
     if (input.email) {
@@ -45,7 +56,11 @@ export const parentService = {
       first_name: input.first_name,
       last_name: input.last_name,
       email: input.email ?? null,
-      phone: input.phone ?? null,
+      phone: input.phone,
+      alternative_phone: input.alternative_phone ?? null,
+      address: input.address,
+      occupation: input.occupation ?? null,
+      employer: input.employer ?? null,
       parent_subscription_required: input.parent_subscription_required ?? false,
       subscription_start_date: input.subscription_start_date ?? null,
       subscription_end_date: input.subscription_end_date ?? null,
@@ -72,6 +87,19 @@ export const parentService = {
       throw new ParentNotFoundError();
     }
 
+    if (input.phone && input.phone !== parent.phone) {
+      const existingPhone = await Parent.findOne({
+        where: {
+          school_id: parent.school_id,
+          phone: input.phone,
+          id: { [Op.ne]: parent.id },
+        },
+      });
+      if (existingPhone) {
+        throw new ParentPhoneExistsError();
+      }
+    }
+
     if (input.email && input.email !== parent.email) {
       const existing = await Parent.findOne({
         where: {
@@ -90,6 +118,10 @@ export const parentService = {
       last_name: input.last_name ?? parent.last_name,
       email: input.email ?? parent.email,
       phone: input.phone ?? parent.phone,
+      alternative_phone: input.alternative_phone ?? parent.alternative_phone,
+      address: input.address ?? parent.address,
+      occupation: input.occupation ?? parent.occupation,
+      employer: input.employer ?? parent.employer,
       parent_subscription_required:
         input.parent_subscription_required ?? parent.parent_subscription_required,
       subscription_start_date: input.subscription_start_date ?? parent.subscription_start_date,

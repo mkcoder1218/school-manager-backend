@@ -3,6 +3,7 @@ import { createBranchSchema, updateBranchSchema } from './branch.validation';
 import { branchService, SchoolNotFoundError } from './branch.service';
 import { CreateBranchDTO } from './branch.types';
 import { buildListQuery, buildMeta } from '../../core/utils/query';
+import { User } from '../users/user.model';
 
 export const createBranch = async (req: Request, res: Response): Promise<void> => {
   const { error, value } = createBranchSchema.validate(req.body, { abortEarly: false });
@@ -43,9 +44,24 @@ export const listBranches = async (req: Request, res: Response): Promise<void> =
   try {
     const actorRole = req.user?.role;
     const actorSchoolId = req.user?.school_id ?? null;
+    const actorUserId = req.user?.user_id;
     if (actorRole !== 'super_admin' && !actorSchoolId) {
       res.status(403).json({ message: 'Access denied' });
       return;
+    }
+
+    const isGlobal = actorRole === 'super_admin';
+    const canSeeAllBranchesInSchool = actorRole === 'school_owner';
+    const mustBeInOwnBranch = !isGlobal && !canSeeAllBranchesInSchool;
+
+    let actorBranchId: string | null = null;
+    if (mustBeInOwnBranch) {
+      const actorUser = actorUserId ? await User.findByPk(actorUserId) : null;
+      actorBranchId = actorUser?.branch_id ?? null;
+      if (!actorBranchId) {
+        res.status(403).json({ message: 'Branch restriction' });
+        return;
+      }
     }
 
     const { page, limit, offset, sort, order, orderBy, where } = buildListQuery(
@@ -54,8 +70,8 @@ export const listBranches = async (req: Request, res: Response): Promise<void> =
     );
 
     const { rows, count } = await branchService.listBranches({
-      schoolId: actorRole === 'super_admin' ? null : actorSchoolId,
-      where,
+      schoolId: isGlobal ? null : actorSchoolId,
+      where: mustBeInOwnBranch ? { ...where, id: actorBranchId as string } : where,
       order: orderBy,
       limit,
       offset,

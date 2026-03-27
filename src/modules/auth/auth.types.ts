@@ -22,6 +22,7 @@ export interface Permission {
 export interface JwtPayload {
   sub: string;
   school_id: string | null;
+  schoolId?: string | null;
   roles: string[];
   permissions: string[];
 }
